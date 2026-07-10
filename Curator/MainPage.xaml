@@ -47,8 +47,8 @@
 
         </Grid>
 
-        <!-- Temporary collection cards -->
-        <Grid
+        <!--Collection Cards -->
+        <!--<Grid
             Grid.Row="2"
             ColumnDefinitions="*,*"
             RowDefinitions="Auto,Auto"
@@ -59,78 +59,56 @@
                 Grid.Row="0"
                 Grid.Column="0"
                 Padding="16"
-                StrokeThickness="1">
+                StrokeThickness="1">-->
 
-                <VerticalStackLayout Spacing="8">
-                    <Label
-                        Text="Books"
-                        FontSize="20"
-                        FontAttributes="Bold" />
+                <CollectionView
+                    Grid.Row="2"
+                    ItemsSource="{Binding Collections}">
 
-                    <Label
-                        Text="Collection"
-                        FontSize="16"
-                        HorizontalOptions="Center" />
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout
+                            Orientation="Vertical"
+                            Span="2"
+                            HorizontalItemSpacing="12"
+                            VerticalItemSpacing="12" />
+                    </CollectionView.ItemsLayout>
 
-                    <Label
-                        Text="0 items"
-                        FontSize="12"
-                        HorizontalOptions="Center" />
-                </VerticalStackLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
 
-            </Border>
+                            <Border
+                                Padding="16"
+                                StrokeThickness="1">
 
-            <Border
-                Grid.Row="0"
-                Grid.Column="1"
-                Padding="16"
-                StrokeThickness="1">
+                                <VerticalStackLayout Spacing="8">
 
-                <VerticalStackLayout Spacing="8">
-                    <Label
-                        Text="Games"
-                        FontSize="20"
-                        FontAttributes="Bold" />
+                                    <Label
+                                        Text="{Binding Name}"
+                                        FontSize="20"
+                                        FontAttributes="Bold" />
 
-                    <Label
-                        Text="Collection"
-                        FontSize="16"
-                        HorizontalOptions="Center" />
+                                    <Label
+                                        Text="Collection"
+                                        FontSize="16"
+                                        HorizontalOptions="Center" />
 
-                    <Label
-                        Text="0 items"
-                        FontSize="12"
-                        HorizontalOptions="Center" />
-                </VerticalStackLayout>
+                                    <Label
+                                        Text="{Binding ItemCount, StringFormat='{0} items'}"
+                                        FontSize="12"
+                                        HorizontalOptions="Center" />
 
-            </Border>
+                                </VerticalStackLayout>
 
-            <Border
-                Grid.Row="1"
-                Grid.Column="0"
-                Padding="16"
-                StrokeThickness="1">
+                            </Border>
 
-                <VerticalStackLayout Spacing="8">
-                    <Label
-                        Text="Movies"
-                        FontSize="20"
-                        FontAttributes="Bold" />
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
 
-                    <Label
-                        Text="Collection"
-                        FontSize="16"
-                        HorizontalOptions="Center" />
+                </CollectionView>
 
-                    <Label
-                        Text="0 items"
-                        FontSize="12"
-                        HorizontalOptions="Center" />
-                </VerticalStackLayout>
+        <!--</Border>
 
-            </Border>
-
-        </Grid>
+        </Grid>-->
 
         <!-- Add button -->
         <Button
