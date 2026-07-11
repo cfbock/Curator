@@ -117,7 +117,8 @@
             FontSize="28"
             WidthRequest="64"
             HeightRequest="64"
-            HorizontalOptions="End" />
+            HorizontalOptions="End" 
+            Clicked="OnAddCollectionClicked" />
 
     </Grid>
 

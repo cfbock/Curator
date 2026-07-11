@@ -21,6 +21,26 @@ namespace Curator
             BindingContext = this;
         }
 
+        private async void OnAddCollectionClicked(object? sender, EventArgs e)
+        {
+            string collectionName = await DisplayPromptAsync(
+                "New Collection",
+                "Enter a name for the collection:");
+
+            if (string.IsNullOrWhiteSpace(collectionName))
+            {
+                return;
+            }
+
+            Collections.Add(new Collection
+            {
+                Name = collectionName.Trim(),
+                ItemCount = 0,
+                IsFolder = false
+            });
+        }
+
     }
+
 
 }
