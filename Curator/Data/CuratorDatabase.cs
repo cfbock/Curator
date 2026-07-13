@@ -1,0 +1,56 @@
+﻿using Curator.Models;
+using SQLite;
+
+namespace Curator.Data;
+
+public class CuratorDatabase
+{
+    // Just a constant string. The database file will be named "curator.db3".
+    private const string DatabaseFilename = "curator.db3";
+
+    // A private member variable that will hold our connection to SQLite.
+    private readonly SQLiteAsyncConnection _database;
+
+    // Constructor
+    public CuratorDatabase()
+    {
+        // Build the full path to the database file.
+        string databasePath = Path.Combine(
+            FileSystem.AppDataDirectory,
+            DatabaseFilename);
+
+        // Create a connection object and store it in our member variable.
+        _database = new SQLiteAsyncConnection(databasePath);
+    }
+
+    // Make sure the Collections table exists.
+    public async Task InitializeAsync()
+    {
+        await _database.CreateTableAsync<Collection>();
+    }
+
+    // Return every Collection in the database.
+    public async Task<List<Collection>> GetCollectionsAsync()
+    {
+        await InitializeAsync();
+
+        return await _database
+            .Table<Collection>()
+            .ToListAsync();
+    }
+
+    // Save one Collection.
+    public async Task<int> SaveCollectionAsync(Collection collection)
+    {
+        await InitializeAsync();
+
+        if (collection.Id != 0)
+        {
+            // Existing row -> UPDATE
+            return await _database.UpdateAsync(collection);
+        }
+
+        // New row -> INSERT
+        return await _database.InsertAsync(collection);
+    }
+}
