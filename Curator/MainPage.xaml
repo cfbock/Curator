@@ -63,7 +63,7 @@
 
                 <CollectionView
                     Grid.Row="2"
-                    ItemsSource="{Binding Collections}">
+                    ItemsSource="{Binding Library}">
 
                     <CollectionView.ItemsLayout>
                         <GridItemsLayout

@@ -6,38 +6,59 @@ namespace Curator
 {
     public partial class MainPage : ContentPage
     {
-        public ObservableCollection<Collection> Collections { get; set; }
-
+        // An ObservableCollection property that will hold the list of collections to display in the UI.
+        public ObservableCollection<Collection> Library { get; set; }
+        // A private readonly field that provides access to the SQLite database.
         private readonly CuratorDatabase curatorDatabase;
 
         public MainPage()
         {
+            // Call the InitializeComponent method to initialize the UI components defined in the XAML file.
             InitializeComponent();
-
+            // Create a new instance of the CuratorDatabase class to manage database operations.
             curatorDatabase = new CuratorDatabase();
+            //Initialize the ObservableCollection to an empty collection.
+            Library = new ObservableCollection<Collection>();
 
-            Collections = new ObservableCollection<Collection>
-            {
-                new Collection { Name = "Books", ItemCount = 10, IsFolder = false },
-                new Collection { Name = "Games", ItemCount = 5, IsFolder = true },
-                new Collection { Name = "Movies", ItemCount = 20, IsFolder = false }
-            };
-
-            //Set the BindingContext to the MainPage instance so that the XAML can bind to the Collections property.
+            //Set the BindingContext to the MainPage instance so that the XAML can bind to the Library property.
             BindingContext = this;
         }
+        // Override the OnAppearing method to load the collections from the database when the page appears.
+        protected override async void OnAppearing()
+        {
+            // Call the base class's OnAppearing method to ensure that any base functionality is executed.
+            base.OnAppearing();
+            // Load the collections from the database and update the Library ObservableCollection.
+            await LoadCollectionsAsync();
+        }
 
+        // A private method that loads the collections from the database and updates the Library ObservableCollection.
+        private async Task LoadCollectionsAsync()
+        {
+            // Retrieve the list of collections from the SQLite database.
+            List<Collection> savedCollections =
+                await curatorDatabase.GetCollectionsAsync();
+            // Clear the existing items in the Library ObservableCollection to avoid duplicates.
+            Library.Clear();
+            // Add each collection retrieved from the database to the Library ObservableCollection.
+            foreach (Collection collection in savedCollections)
+            {
+                Library.Add(collection);
+            }
+        }
+        // An event handler for the "Add Collection" button click event.
         private async void OnAddCollectionClicked(object? sender, EventArgs e)
         {
-            string collectionName = await DisplayPromptAsync(
+            // Prompt the user to enter a name for the new collection.
+            string? collectionName = await DisplayPromptAsync(
                 "New Collection",
                 "Enter a name for the collection:");
-
+            // If the user cancels the prompt or enters an empty name, do not proceed with adding the collection.
             if (string.IsNullOrWhiteSpace(collectionName))
             {
                 return;
             }
-
+            // Create a new Collection object with the provided name, an initial item count of 0, and IsFolder set to false.
             Collection newCollection = new Collection
             {
                 Name = collectionName.Trim(),
@@ -49,7 +70,7 @@ namespace Curator
             await curatorDatabase.SaveCollectionAsync(newCollection);
 
             // Add the same object to the visible list on the screen.
-            Collections.Add(newCollection);
+            Library.Add(newCollection);
         }
 
     }
