@@ -1,4 +1,5 @@
-﻿using Curator.Data;
+﻿using CommunityToolkit.Maui.Core;
+using Curator.Data;
 using Curator.Models;
 using System.Collections.ObjectModel;
 
@@ -46,7 +47,8 @@ namespace Curator
                 Library.Add(collection);
             }
         }
-        // An event handler for the "Add Collection" button click event.
+
+        // ---- An event handler for the "Add Collection" button click event. ----
         private async void OnAddCollectionClicked(object? sender, EventArgs e)
         {
             // Prompt the user to enter a name for the new collection.
@@ -73,7 +75,14 @@ namespace Curator
             Library.Add(newCollection);
         }
 
+        // ---- An event handler for the long press event on a collection item in the UI. ----
+        private async void OnCollectionLongPressed(object? sender, LongPressCompletedEventArgs e)
+        {
+            await DisplayAlertAsync(
+            "Long press",
+            "A collection card was long-pressed.",
+            "OK");
+        }
+
     }
-
-
 }

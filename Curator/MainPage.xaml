@@ -2,6 +2,7 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     x:Class="Curator.MainPage"
     Title="Curator">
 
@@ -79,6 +80,11 @@
                             <Border
                                 Padding="16"
                                 StrokeThickness="1">
+                                <Border.Behaviors>
+                                    <toolkit:TouchBehavior
+                                        LongPressDuration="750"
+                                        LongPressCompleted="OnCollectionLongPressed" />
+                                </Border.Behaviors>
 
                                 <VerticalStackLayout Spacing="8">
 

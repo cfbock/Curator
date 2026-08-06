@@ -39,7 +39,7 @@ public class CuratorDatabase
             .ToListAsync();
     }
 
-    // Save one Collection.
+    // Save one Collection
     public async Task<int> SaveCollectionAsync(Collection collection)
     {
         await InitializeAsync();
@@ -52,5 +52,14 @@ public class CuratorDatabase
 
         // New row -> INSERT
         return await _database.InsertAsync(collection);
+    }
+
+    // Remove one Collection
+    public async Task<int> DeleteCollectionAsync(Collection collection)
+    {
+        await InitializeAsync();
+
+        // Existing row -> DELETE
+        return await _database.DeleteAsync(collection);
     }
 }
