@@ -51,37 +51,190 @@ namespace Curator
         // ---- An event handler for the "Add Collection" button click event. ----
         private async void OnAddCollectionClicked(object? sender, EventArgs e)
         {
-            // Prompt the user to enter a name for the new collection.
-            string? collectionName = await DisplayPromptAsync(
-                "New Collection",
-                "Enter a name for the collection:");
-            // If the user cancels the prompt or enters an empty name, do not proceed with adding the collection.
-            if (string.IsNullOrWhiteSpace(collectionName))
+            string result = await DisplayActionSheetAsync("New","Cancel",null,"Collection","Folder");
+
+            switch (result)
             {
-                return;
+                case "Collection":
+                    // Prompt the user to enter a name for the new collection.
+                    string? collectionName = await DisplayPromptAsync(
+                    "New Collection",
+                    "Enter a name for the collection:");
+                    // If the user cancels the prompt or enters an empty name, do not proceed with adding the collection.
+                    if (string.IsNullOrWhiteSpace(collectionName))
+                    {
+                    return;
+                    }
+                    // Create a new Collection object with the provided name, an initial item count of 0, and IsFolder set to false.
+                    Collection newCollection = new Collection
+                    {
+                        Name = collectionName.Trim(),
+                        ItemCount = 0,
+                        IsFolder = false,
+                        CollectionType = "Collection",
+                        ParentCollectionId = null // Set ParentCollectionId to null for root collections
+                    };
+                    if (newCollection != null)
+                    {
+                        // Write the new object into the SQLite database file.
+                        await curatorDatabase.SaveCollectionAsync(newCollection);
+
+                        // Add the same object to the visible list on the screen.
+                        Library.Add(newCollection);
+                    }
+                    break;
+                case "Folder":
+                    // Prompt the user to enter a name for the new folder.
+                    string? folderName = await DisplayPromptAsync(
+                    "New Folder",
+                    "Enter a name for the folder:");
+                    // If the user cancels the prompt or enters an empty name, do not proceed with adding the folder.
+                    if (string.IsNullOrWhiteSpace(folderName))
+                    {
+                        return;
+                    }
+                    // Create a new Collection object with the provided name, an initial item count of 0, and IsFolder set to true.
+                    Collection newFolder = new Collection
+                    {
+                        Name = folderName.Trim(),
+                        ItemCount = 0,
+                        IsFolder = true,
+                        CollectionType = "Folder",
+                        ParentCollectionId = null // Set ParentCollectionId to null for root folders
+                    };
+                    if (newFolder != null)
+                    {
+                        // Write the new folder into the SQLite database file.
+                        await curatorDatabase.SaveCollectionAsync(newFolder);
+
+                        // Add the same folder to the visible list on the screen.
+                        Library.Add(newFolder);
+                    }
+                    break;
+                default:
+                    // Cancel or unrecognized option
+                    break;
             }
-            // Create a new Collection object with the provided name, an initial item count of 0, and IsFolder set to false.
-            Collection newCollection = new Collection
-            {
-                Name = collectionName.Trim(),
-                ItemCount = 0,
-                IsFolder = false
-            };
-
-            // Write the new object into the SQLite database file.
-            await curatorDatabase.SaveCollectionAsync(newCollection);
-
-            // Add the same object to the visible list on the screen.
-            Library.Add(newCollection);
         }
+        
 
         // ---- An event handler for the long press event on a collection item in the UI. ----
         private async void OnCollectionLongPressed(object? sender, LongPressCompletedEventArgs e)
         {
-            await DisplayAlertAsync(
-            "Long press",
-            "A collection card was long-pressed.",
-            "OK");
+            //await DisplayAlertAsync(
+            //"Long press",
+            //"A collection card was long-pressed.",
+            //"OK");
+
+            string result = await DisplayActionSheetAsync("Collection Options","Cancel",null,"Delete","Rename","Move");
+
+            //await DisplayAlertAsync(
+            //    "Debug",
+            //    e.LongPressCommandParameter?.GetType().FullName ?? "Parameter is null",
+            //    "OK"
+            //    );
+
+            switch (result)
+            {
+                case "Delete":
+                    if (e.LongPressCommandParameter is Collection collectionToDelete)
+                    {
+                        var confirmDelete = await DisplayAlertAsync(
+                            "Confirm Delete",
+                            $"Are you sure you want to delete the collection '{collectionToDelete.Name}'?",
+                            "Yes",
+                            "No");
+                        if (confirmDelete)
+                        {
+                            await curatorDatabase.DeleteCollectionAsync(collectionToDelete);
+                            Library.Remove(collectionToDelete);
+                        }
+                    }
+                    break;
+                case "Rename":
+                    if (e.LongPressCommandParameter is Collection collectionToRename)
+                    {
+                        string? newName = await DisplayPromptAsync(
+                            "Rename Collection",
+                            "Enter a new name for the collection:",
+                            initialValue: collectionToRename.Name);
+
+                        if (!string.IsNullOrWhiteSpace(newName))
+                        {
+                            collectionToRename.Name = newName.Trim();
+                            await curatorDatabase.SaveCollectionAsync(collectionToRename);
+                            // Refresh the UI by removing and re-adding the renamed collection
+                            Library.Remove(collectionToRename);
+                            Library.Add(collectionToRename);
+                        }
+                    }
+                    break;
+                case "Move":
+                    if (e.LongPressCommandParameter is Collection collectionToMove)
+                    {
+                        if (collectionToMove.ParentCollectionId != null)
+                        {
+                            result = await DisplayActionSheetAsync("Move Collection", "Cancel", null, "Move from Folder");
+                            if (result == "Move from Folder")
+                            {
+                                var currentParent = Library.FirstOrDefault(c => c.Id == collectionToMove.ParentCollectionId);
+                                collectionToMove.ParentCollectionId = null; // Move to root
+                                await curatorDatabase.SaveCollectionAsync(collectionToMove);
+                                if (currentParent != null) 
+                                {
+                                    // Update the item count of the current parent folder
+                                    currentParent.ItemCount = await curatorDatabase.GetCollectionCountAsync(currentParent.Id); 
+                                    // Refresh the UI by removing and re-adding the moved collection and the updated parent folder
+                                    Library.Remove(collectionToMove);
+                                    Library.Remove(currentParent);
+                                    Library.Add(currentParent);
+                                    Library.Add(collectionToMove);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Get a list of potential parent collections (folders) to move into
+                            var potentialParents = Library.Where(c => c.IsFolder && c.Id != collectionToMove.Id).ToList();
+                            if (potentialParents.Count == 0)
+                            {
+                                await DisplayAlertAsync(
+                                    "No Folders Available",
+                                    "There are no available folders to move this collection into.",
+                                    "OK");
+                                return;
+                            }
+                            // Create a list of folder names for the action sheet
+                            var folderNames = potentialParents.Select(f => f.Name).ToArray();
+                            string? selectedFolderName = await DisplayActionSheetAsync(
+                                "Move Collection",
+                                "Cancel",
+                                null,
+                                folderNames);
+
+                            if (!string.IsNullOrWhiteSpace(selectedFolderName) && selectedFolderName != "Cancel")
+                            {
+                                var selectedFolder = potentialParents.FirstOrDefault(f => f.Name == selectedFolderName);
+                                if (selectedFolder != null)
+                                {
+                                    collectionToMove.ParentCollectionId = selectedFolder.Id;
+                                    await curatorDatabase.SaveCollectionAsync(collectionToMove);
+                                    // Update the item count of the current parent folder
+                                    selectedFolder.ItemCount = await curatorDatabase.GetCollectionCountAsync(selectedFolder.Id); 
+                                    // Refresh the UI by removing and re-adding the moved collection and the updated folder
+                                    Library.Remove(collectionToMove);
+                                    Library.Remove(selectedFolder); 
+                                    Library.Add(selectedFolder); 
+                                    Library.Add(collectionToMove);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    // Cancel or unrecognized option
+                    break;
+            }
         }
 
     }

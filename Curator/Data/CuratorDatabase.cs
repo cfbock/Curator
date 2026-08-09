@@ -62,4 +62,14 @@ public class CuratorDatabase
         // Existing row -> DELETE
         return await _database.DeleteAsync(collection);
     }
+
+    public async Task<int> GetCollectionCountAsync(int parentCollectionId)
+    {
+        await InitializeAsync();
+
+        return await _database
+            .Table<Collection>()
+            .Where(c => c.ParentCollectionId == parentCollectionId)
+            .CountAsync(); //return the count of collections with the specified parentCollectionId
+    }
 }

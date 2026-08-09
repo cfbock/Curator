@@ -76,14 +76,15 @@
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
-
                             <Border
+                                x:Name="CollectionCard"
                                 Padding="16"
                                 StrokeThickness="1">
                                 <Border.Behaviors>
                                     <toolkit:TouchBehavior
                                         LongPressDuration="750"
-                                        LongPressCompleted="OnCollectionLongPressed" />
+                                        LongPressCommandParameter="{Binding BindingContext, Source={x:Reference CollectionCard}}"
+                                        LongPressCompleted="OnCollectionLongPressed"  />
                                 </Border.Behaviors>
 
                                 <VerticalStackLayout Spacing="8">
@@ -94,7 +95,7 @@
                                         FontAttributes="Bold" />
 
                                     <Label
-                                        Text="Collection"
+                                        Text="{Binding CollectionType}"
                                         FontSize="16"
                                         HorizontalOptions="Center" />
 
