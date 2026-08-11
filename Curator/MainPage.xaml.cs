@@ -9,7 +9,7 @@ namespace Curator
     {
         // A private field to keep track of the current folder name for display purposes.
         private string currentFolderName = "";
-                public string CurrentLocation
+        public string CurrentLocation
         {
             get
             {
@@ -63,7 +63,7 @@ namespace Curator
                     // If the collection is a folder, get the count of items in that folder.
                     collection.ItemCount = await curatorDatabase.GetCollectionCountAsync(collection.Id);
                 }
-                
+
                 Library.Add(collection);
             }
         }
@@ -71,7 +71,7 @@ namespace Curator
         // ---- An event handler for the "Add Collection" button click event. ----
         private async void OnAddCollectionClicked(object? sender, EventArgs e)
         {
-            string result = await DisplayActionSheetAsync("New","Cancel",null,"Collection","Folder");
+            string result = await DisplayActionSheetAsync("New", "Cancel", null, "Collection", "Folder");
 
             switch (result)
             {
@@ -83,7 +83,7 @@ namespace Curator
                     // If the user cancels the prompt or enters an empty name, do not proceed with adding the collection.
                     if (string.IsNullOrWhiteSpace(collectionName))
                     {
-                    return;
+                        return;
                     }
                     // Create a new Collection object with the provided name, an initial item count of 0, and IsFolder set to false.
                     Collection newCollection = new Collection
@@ -99,8 +99,14 @@ namespace Curator
                         // Write the new object into the SQLite database file.
                         await curatorDatabase.SaveCollectionAsync(newCollection);
 
+                        await BackToRootAsync();
+                        //currentFolderId = null; // Reset to root after adding a new collection
+                        //currentFolderName = ""; // Reset folder name to root
+                        //HeaderLabel.Text = CurrentLocation; // Update the header label to reflect the current location
+
+                        //await LoadCollectionsAsync(); // Reload the collections to reflect the changes
                         // Add the same object to the visible list on the screen.
-                        Library.Add(newCollection);
+                        //Library.Add(newCollection);
                     }
                     break;
                 case "Folder":
@@ -127,8 +133,9 @@ namespace Curator
                         // Write the new folder into the SQLite database file.
                         await curatorDatabase.SaveCollectionAsync(newFolder);
 
+                        await BackToRootAsync();
                         // Add the same folder to the visible list on the screen.
-                        Library.Add(newFolder);
+                        //Library.Add(newFolder);
                     }
                     break;
                 default:
@@ -136,7 +143,7 @@ namespace Curator
                     break;
             }
         }
-        
+
 
         // ---- An event handler for the long press event on a collection item in the UI. ----
         private async void OnCollectionLongPressed(object? sender, LongPressCompletedEventArgs e)
@@ -146,7 +153,7 @@ namespace Curator
             //"A collection card was long-pressed.",
             //"OK");
 
-            string result = await DisplayActionSheetAsync("Collection Options","Cancel",null,"Delete","Rename","Move");
+            string result = await DisplayActionSheetAsync("Collection Options", "Cancel", null, "Delete", "Rename", "Move");
 
             //await DisplayAlertAsync(
             //    "Debug",
@@ -200,15 +207,11 @@ namespace Curator
                                 var currentParent = Library.FirstOrDefault(c => c.Id == collectionToMove.ParentCollectionId);
                                 collectionToMove.ParentCollectionId = null; // Move to root
                                 await curatorDatabase.SaveCollectionAsync(collectionToMove);
-                                if (currentParent != null) 
+                                if (currentParent != null)
                                 {
                                     // Update the item count of the current parent folder
-                                    currentParent.ItemCount = await curatorDatabase.GetCollectionCountAsync(currentParent.Id); 
-                                    // Refresh the UI by removing and re-adding the moved collection and the updated parent folder
-                                    //Library.Remove(collectionToMove);
-                                    //Library.Remove(currentParent);
-                                    //Library.Add(currentParent);
-                                    //Library.Add(collectionToMove);
+                                    currentParent.ItemCount = await curatorDatabase.GetCollectionCountAsync(currentParent.Id);
+
                                     await LoadCollectionsAsync(); // Reload the collections to reflect the changes
                                 }
                             }
@@ -217,7 +220,15 @@ namespace Curator
                         {
                             // Get a list of potential parent collections (folders) to move into
                             var potentialParents = Library.Where(c => c.IsFolder && c.Id != collectionToMove.Id).ToList();
-                            if (potentialParents.Count == 0)
+                            if (collectionToMove.IsFolder)
+                            {
+                                await DisplayAlertAsync(
+                                    "Unable to Move",
+                                    "Curator does not yet support moving folders.",
+                                    "OK");
+                                return;
+                            }
+                            else if (potentialParents.Count == 0)
                             {
                                 await DisplayAlertAsync(
                                     "No Folders Available",
@@ -241,12 +252,8 @@ namespace Curator
                                     collectionToMove.ParentCollectionId = selectedFolder.Id;
                                     await curatorDatabase.SaveCollectionAsync(collectionToMove);
                                     // Update the item count of the current parent folder
-                                    selectedFolder.ItemCount = await curatorDatabase.GetCollectionCountAsync(selectedFolder.Id); 
-                                    // Refresh the UI by removing and re-adding the moved collection and the updated folder
-                                    //Library.Remove(collectionToMove);
-                                    //Library.Remove(selectedFolder); 
-                                    //Library.Add(selectedFolder); 
-                                    //Library.Add(collectionToMove);
+                                    selectedFolder.ItemCount = await curatorDatabase.GetCollectionCountAsync(selectedFolder.Id);
+
                                     await LoadCollectionsAsync(); // Reload the collections to reflect the changes
                                 }
                             }
@@ -269,5 +276,18 @@ namespace Curator
                 await LoadCollectionsAsync();
             }
         }
-    }
-}
+
+        private async Task BackToRootAsync()
+        {
+            currentFolderId = null;
+            currentFolderName = "";
+            HeaderLabel.Text = CurrentLocation;
+            await LoadCollectionsAsync();
+        }
+
+        private async void BackToRootClicked(object? sender, EventArgs e)
+        {
+            await BackToRootAsync();
+        }
+    } //MainPage class end
+} //namespace end

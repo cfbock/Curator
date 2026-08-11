@@ -21,7 +21,13 @@
                 Text="{Binding CurrentLocation}"
                 FontSize="32"
                 FontAttributes="Bold"
-                VerticalOptions="Center" />
+                VerticalOptions="Center" >
+
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer
+                    Tapped="BackToRootClicked" />
+                </Label.GestureRecognizers>
+            </Label>
 
             <Button
                 Grid.Column="1"
