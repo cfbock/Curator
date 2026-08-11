@@ -17,7 +17,8 @@
             ColumnDefinitions="*,Auto">
 
             <Label
-                Text="Collections"
+                x:Name="HeaderLabel"
+                Text="{Binding CurrentLocation}"
                 FontSize="32"
                 FontAttributes="Bold"
                 VerticalOptions="Center" />
@@ -81,11 +82,18 @@
                                 Padding="16"
                                 StrokeThickness="1">
                                 <Border.Behaviors>
+                                    
                                     <toolkit:TouchBehavior
                                         LongPressDuration="750"
                                         LongPressCommandParameter="{Binding BindingContext, Source={x:Reference CollectionCard}}"
                                         LongPressCompleted="OnCollectionLongPressed"  />
                                 </Border.Behaviors>
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Tapped="OpenFolderCollectionClicked"
+                                        CommandParameter="{Binding BindingContext, Source={x:Reference CollectionCard}}" />
+                                </Border.GestureRecognizers>
 
                                 <VerticalStackLayout Spacing="8">
 

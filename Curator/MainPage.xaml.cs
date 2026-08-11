@@ -7,6 +7,20 @@ namespace Curator
 {
     public partial class MainPage : ContentPage
     {
+        // A private field to keep track of the current folder name for display purposes.
+        private string currentFolderName = "";
+                public string CurrentLocation
+        {
+            get
+            {
+                if (currentFolderId == null)
+                    return "Collections";
+
+                return $"Collections > {currentFolderName}";
+            }
+        }
+        // A private field to keep track of the current folder ID for navigation purposes.
+        private int? currentFolderId = null;
         // An ObservableCollection property that will hold the list of collections to display in the UI.
         public ObservableCollection<Collection> Library { get; set; }
         // A private readonly field that provides access to the SQLite database.
@@ -38,12 +52,18 @@ namespace Curator
         {
             // Retrieve the list of collections from the SQLite database.
             List<Collection> savedCollections =
-                await curatorDatabase.GetCollectionsAsync();
+                await curatorDatabase.GetCollectionsAsync(currentFolderId);
             // Clear the existing items in the Library ObservableCollection to avoid duplicates.
             Library.Clear();
             // Add each collection retrieved from the database to the Library ObservableCollection.
             foreach (Collection collection in savedCollections)
             {
+                if (collection.IsFolder)
+                {
+                    // If the collection is a folder, get the count of items in that folder.
+                    collection.ItemCount = await curatorDatabase.GetCollectionCountAsync(collection.Id);
+                }
+                
                 Library.Add(collection);
             }
         }
@@ -185,10 +205,11 @@ namespace Curator
                                     // Update the item count of the current parent folder
                                     currentParent.ItemCount = await curatorDatabase.GetCollectionCountAsync(currentParent.Id); 
                                     // Refresh the UI by removing and re-adding the moved collection and the updated parent folder
-                                    Library.Remove(collectionToMove);
-                                    Library.Remove(currentParent);
-                                    Library.Add(currentParent);
-                                    Library.Add(collectionToMove);
+                                    //Library.Remove(collectionToMove);
+                                    //Library.Remove(currentParent);
+                                    //Library.Add(currentParent);
+                                    //Library.Add(collectionToMove);
+                                    await LoadCollectionsAsync(); // Reload the collections to reflect the changes
                                 }
                             }
                         }
@@ -222,10 +243,11 @@ namespace Curator
                                     // Update the item count of the current parent folder
                                     selectedFolder.ItemCount = await curatorDatabase.GetCollectionCountAsync(selectedFolder.Id); 
                                     // Refresh the UI by removing and re-adding the moved collection and the updated folder
-                                    Library.Remove(collectionToMove);
-                                    Library.Remove(selectedFolder); 
-                                    Library.Add(selectedFolder); 
-                                    Library.Add(collectionToMove);
+                                    //Library.Remove(collectionToMove);
+                                    //Library.Remove(selectedFolder); 
+                                    //Library.Add(selectedFolder); 
+                                    //Library.Add(collectionToMove);
+                                    await LoadCollectionsAsync(); // Reload the collections to reflect the changes
                                 }
                             }
                         }
@@ -236,6 +258,16 @@ namespace Curator
                     break;
             }
         }
-
+        private async void OpenFolderCollectionClicked(object? sender, TappedEventArgs e)
+        {
+            if (e.Parameter is Collection collectionToOpen &&
+                collectionToOpen.IsFolder)
+            {
+                currentFolderId = collectionToOpen.Id;
+                currentFolderName = collectionToOpen.Name;
+                HeaderLabel.Text = CurrentLocation;
+                await LoadCollectionsAsync();
+            }
+        }
     }
 }

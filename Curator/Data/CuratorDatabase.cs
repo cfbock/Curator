@@ -30,13 +30,27 @@ public class CuratorDatabase
     }
 
     // Return every Collection in the database.
-    public async Task<List<Collection>> GetCollectionsAsync()
+    public async Task<List<Collection>> GetCollectionsAsync(int? collectionId = null)
     {
         await InitializeAsync();
 
-        return await _database
-            .Table<Collection>()
-            .ToListAsync();
+        var query = _database.Table<Collection>();
+
+        if (collectionId.HasValue)
+        {
+            query = query.Where(c => c.ParentCollectionId == collectionId.Value);
+        }
+        else
+        {
+            query = query.Where(c => c.ParentCollectionId == null);
+        }
+
+        return await query.ToListAsync();
+            //.ToListAsync();
+
+        //return await _database
+        //    .Table<Collection>()
+        //    .ToListAsync();
     }
 
     // Save one Collection
