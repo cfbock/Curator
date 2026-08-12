@@ -174,7 +174,15 @@ namespace Curator
                         if (confirmDelete)
                         {
                             await curatorDatabase.DeleteCollectionAsync(collectionToDelete);
-                            Library.Remove(collectionToDelete);
+                            //Library.Remove(collectionToDelete);
+                            if (collectionToDelete.IsFolder)
+                            {
+                                await BackToRootAsync(); // Reload the collections to reflect the changes
+                            }
+                            else
+                            {
+                                await LoadCollectionsAsync(); // Reload the collections to reflect the changes
+                            }
                         }
                     }
                     break;
@@ -190,9 +198,18 @@ namespace Curator
                         {
                             collectionToRename.Name = newName.Trim();
                             await curatorDatabase.SaveCollectionAsync(collectionToRename);
+
+                            if (collectionToRename.IsFolder)
+                            {
+                                await BackToRootAsync(); // Reload the collections to reflect the changes
+                            }
+                            else
+                            {
+                                await LoadCollectionsAsync(); // Reload the collections to reflect the changes
+                            }
                             // Refresh the UI by removing and re-adding the renamed collection
-                            Library.Remove(collectionToRename);
-                            Library.Add(collectionToRename);
+                            //Library.Remove(collectionToRename);
+                            //Library.Add(collectionToRename);
                         }
                     }
                     break;
@@ -212,8 +229,8 @@ namespace Curator
                                     // Update the item count of the current parent folder
                                     currentParent.ItemCount = await curatorDatabase.GetCollectionCountAsync(currentParent.Id);
 
-                                    await LoadCollectionsAsync(); // Reload the collections to reflect the changes
                                 }
+                                await LoadCollectionsAsync(); // Reload the collections to reflect the changes
                             }
                         }
                         else
