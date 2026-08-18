@@ -86,7 +86,7 @@ namespace Curator
                         return;
                     }
                     // Check if a collection with the same name already exists in the current location
-                    if (await curatorDatabase.CollectionExistsAsync(collectionName.Trim(), currentFolderId))
+                    if (await curatorDatabase.CollectionExistsAsync(collectionName.Trim(), null))
                     {
                         await DisplayAlertAsync(
                             "Duplicate Name",
