@@ -85,28 +85,40 @@ namespace Curator
                     {
                         return;
                     }
-                    // Create a new Collection object with the provided name, an initial item count of 0, and IsFolder set to false.
-                    Collection newCollection = new Collection
+                    // Check if a collection with the same name already exists in the current location
+                    if (await curatorDatabase.CollectionExistsAsync(collectionName.Trim(), currentFolderId))
                     {
-                        Name = collectionName.Trim(),
-                        ItemCount = 0,
-                        IsFolder = false,
-                        CollectionType = "Collection",
-                        ParentCollectionId = null // Set ParentCollectionId to null for root collections
-                    };
-                    if (newCollection != null)
+                        await DisplayAlertAsync(
+                            "Duplicate Name",
+                            "A collection with this name already exists in the current location. Please choose a different name.",
+                            "OK");
+                        return;
+                    }
+                    else
                     {
-                        // Write the new object into the SQLite database file.
-                        await curatorDatabase.SaveCollectionAsync(newCollection);
+                        // Create a new Collection object with the provided name, an initial item count of 0, and IsFolder set to false.
+                        Collection newCollection = new Collection
+                        {
+                            Name = collectionName.Trim(),
+                            ItemCount = 0,
+                            IsFolder = false,
+                            CollectionType = "Collection",
+                            ParentCollectionId = null // Set ParentCollectionId to null for root collections
+                        };
+                        if (newCollection != null)
+                        {
+                            // Write the new object into the SQLite database file.
+                            await curatorDatabase.SaveCollectionAsync(newCollection);
 
-                        await BackToRootAsync();
-                        //currentFolderId = null; // Reset to root after adding a new collection
-                        //currentFolderName = ""; // Reset folder name to root
-                        //HeaderLabel.Text = CurrentLocation; // Update the header label to reflect the current location
+                            await BackToRootAsync();
+                            //currentFolderId = null; // Reset to root after adding a new collection
+                            //currentFolderName = ""; // Reset folder name to root
+                            //HeaderLabel.Text = CurrentLocation; // Update the header label to reflect the current location
 
-                        //await LoadCollectionsAsync(); // Reload the collections to reflect the changes
-                        // Add the same object to the visible list on the screen.
-                        //Library.Add(newCollection);
+                            //await LoadCollectionsAsync(); // Reload the collections to reflect the changes
+                            // Add the same object to the visible list on the screen.
+                            //Library.Add(newCollection);
+                        }
                     }
                     break;
                 case "Folder":
@@ -119,23 +131,35 @@ namespace Curator
                     {
                         return;
                     }
-                    // Create a new Collection object with the provided name, an initial item count of 0, and IsFolder set to true.
-                    Collection newFolder = new Collection
+                    // Check if a folder with the same name already exists in the current location.
+                    if (await curatorDatabase.CollectionExistsAsync(folderName.Trim(), currentFolderId))
                     {
-                        Name = folderName.Trim(),
-                        ItemCount = 0,
-                        IsFolder = true,
-                        CollectionType = "Folder",
-                        ParentCollectionId = null // Set ParentCollectionId to null for root folders
-                    };
-                    if (newFolder != null)
+                        await DisplayAlertAsync(
+                            "Duplicate Name",
+                            "A folder with this name already exists in the current location. Please choose a different name.",
+                            "OK");
+                        return;
+                    }
+                    else
                     {
-                        // Write the new folder into the SQLite database file.
-                        await curatorDatabase.SaveCollectionAsync(newFolder);
+                        // Create a new Collection object with the provided name, an initial item count of 0, and IsFolder set to true.
+                        Collection newFolder = new Collection
+                        {
+                            Name = folderName.Trim(),
+                            ItemCount = 0,
+                            IsFolder = true,
+                            CollectionType = "Folder",
+                            ParentCollectionId = null // Set ParentCollectionId to null for root folders
+                        };
+                        if (newFolder != null)
+                        {
+                            // Write the new folder into the SQLite database file.
+                            await curatorDatabase.SaveCollectionAsync(newFolder);
 
-                        await BackToRootAsync();
-                        // Add the same folder to the visible list on the screen.
-                        //Library.Add(newFolder);
+                            await BackToRootAsync();
+                            // Add the same folder to the visible list on the screen.
+                            //Library.Add(newFolder);
+                        }
                     }
                     break;
                 default:
@@ -153,6 +177,18 @@ namespace Curator
             //"A collection card was long-pressed.",
             //"OK");
 
+            if (e.LongPressCommandParameter is Collection collectionClicked)
+            {
+                if (collectionClicked.IsFolder)
+                    {
+                        await BackToRootAsync(); // Reload the collections to reflect the changes
+                    }
+                    else
+                    {
+                        await LoadCollectionsAsync(); // Reload the collections to reflect the changes
+                    }
+            }
+
             string result = await DisplayActionSheetAsync("Collection Options", "Cancel", null, "Delete", "Rename", "Move");
 
             //await DisplayAlertAsync(
@@ -166,22 +202,33 @@ namespace Curator
                 case "Delete":
                     if (e.LongPressCommandParameter is Collection collectionToDelete)
                     {
-                        var confirmDelete = await DisplayAlertAsync(
-                            "Confirm Delete",
-                            $"Are you sure you want to delete the collection '{collectionToDelete.Name}'?",
-                            "Yes",
-                            "No");
-                        if (confirmDelete)
+                        if (collectionToDelete.ItemCount > 0)
                         {
-                            await curatorDatabase.DeleteCollectionAsync(collectionToDelete);
-                            //Library.Remove(collectionToDelete);
-                            if (collectionToDelete.IsFolder)
+                            await DisplayAlertAsync(
+                                "Cannot Delete",
+                                "This collection is not empty. Please remove all items before deleting.",
+                                "OK");
+                            return;
+                        }
+                        else
+                        {
+                            var confirmDelete = await DisplayAlertAsync(
+                                "Confirm Delete",
+                                $"Are you sure you want to delete the collection '{collectionToDelete.Name}'?",
+                                "Yes",
+                                "No");
+                            if (confirmDelete)
                             {
-                                await BackToRootAsync(); // Reload the collections to reflect the changes
-                            }
-                            else
-                            {
+                                await curatorDatabase.DeleteCollectionAsync(collectionToDelete);
+                                //Library.Remove(collectionToDelete);
+                                //if (collectionToDelete.IsFolder)
+                                //{
+                                //    await BackToRootAsync(); // Reload the collections to reflect the changes
+                                //}
+                                //else
+                                //{
                                 await LoadCollectionsAsync(); // Reload the collections to reflect the changes
+                                //}
                             }
                         }
                     }
@@ -196,20 +243,28 @@ namespace Curator
 
                         if (!string.IsNullOrWhiteSpace(newName))
                         {
-                            collectionToRename.Name = newName.Trim();
-                            await curatorDatabase.SaveCollectionAsync(collectionToRename);
-
-                            if (collectionToRename.IsFolder)
+                            // Check if a collection with the new name already exists in the current folder
+                            if (await curatorDatabase.CollectionExistsAsync(newName.Trim(), collectionToRename.ParentCollectionId, collectionToRename.Id))
                             {
-                                await BackToRootAsync(); // Reload the collections to reflect the changes
+                                await DisplayAlertAsync(
+                                    "Duplicate Name",
+                                    "A collection with this name already exists in the current folder. Please choose a different name.",
+                                    "OK");
                             }
                             else
-                            {
-                                await LoadCollectionsAsync(); // Reload the collections to reflect the changes
+                            { 
+                                collectionToRename.Name = newName;
+                                await curatorDatabase.SaveCollectionAsync(collectionToRename);
+    
                             }
-                            // Refresh the UI by removing and re-adding the renamed collection
-                            //Library.Remove(collectionToRename);
-                            //Library.Add(collectionToRename);
+                            //if (collectionToRename.IsFolder)
+                            //{
+                            //    await BackToRootAsync(); // Reload the collections to reflect the changes
+                            //}
+                            //else
+                            //{
+                            await LoadCollectionsAsync(); // Reload the collections to reflect the changes
+                            //}
                         }
                     }
                     break;
@@ -222,15 +277,26 @@ namespace Curator
                             if (result == "Move from Folder")
                             {
                                 var currentParent = Library.FirstOrDefault(c => c.Id == collectionToMove.ParentCollectionId);
-                                collectionToMove.ParentCollectionId = null; // Move to root
-                                await curatorDatabase.SaveCollectionAsync(collectionToMove);
-                                if (currentParent != null)
+                                if (await curatorDatabase.CollectionExistsAsync(collectionToMove.Name, null, collectionToMove.Id))
                                 {
-                                    // Update the item count of the current parent folder
-                                    currentParent.ItemCount = await curatorDatabase.GetCollectionCountAsync(currentParent.Id);
-
+                                    await DisplayAlertAsync(
+                                        "Duplicate Name",
+                                        "A collection with this name already exists in the root location. Please choose a different name or rename the collection before moving.",
+                                        "OK");
+                                    return;
                                 }
-                                await LoadCollectionsAsync(); // Reload the collections to reflect the changes
+                                else
+                                {
+                                    collectionToMove.ParentCollectionId = null; // Move to root
+                                    await curatorDatabase.SaveCollectionAsync(collectionToMove);
+                                    if (currentParent != null)
+                                    {
+                                        // Update the item count of the current parent folder
+                                        currentParent.ItemCount = await curatorDatabase.GetCollectionCountAsync(currentParent.Id);
+
+                                    }
+                                    await LoadCollectionsAsync(); // Reload the collections to reflect the changes
+                                }
                             }
                         }
                         else
@@ -266,19 +332,40 @@ namespace Curator
                                 var selectedFolder = potentialParents.FirstOrDefault(f => f.Name == selectedFolderName);
                                 if (selectedFolder != null)
                                 {
-                                    collectionToMove.ParentCollectionId = selectedFolder.Id;
-                                    await curatorDatabase.SaveCollectionAsync(collectionToMove);
-                                    // Update the item count of the current parent folder
-                                    selectedFolder.ItemCount = await curatorDatabase.GetCollectionCountAsync(selectedFolder.Id);
+                                    if (await curatorDatabase.CollectionExistsAsync(collectionToMove.Name, selectedFolder.Id, collectionToMove.Id))
+                                    {
+                                        await DisplayAlertAsync(
+                                            "Duplicate Name",
+                                            "A collection with this name already exists in the selected folder. Please choose a different name or rename the collection before moving.",
+                                            "OK");
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        collectionToMove.ParentCollectionId = selectedFolder.Id;
+                                        await curatorDatabase.SaveCollectionAsync(collectionToMove);
+                                        // Update the item count of the current parent folder
+                                        selectedFolder.ItemCount = await curatorDatabase.GetCollectionCountAsync(selectedFolder.Id);
 
-                                    await LoadCollectionsAsync(); // Reload the collections to reflect the changes
+                                        await LoadCollectionsAsync(); // Reload the collections to reflect the changes
+                                    }
                                 }
                             }
                         }
                     }
                     break;
                 default:
-                    // Cancel or unrecognized option
+                    //if (e.LongPressCommandParameter is Collection collectionCancel)
+                    //{
+                    //    if (collectionCancel.IsFolder)
+                    //        {
+                    //            await BackToRootAsync(); // Reload the collections to reflect the changes
+                    //        }
+                    //        else
+                    //        {
+                    //            await LoadCollectionsAsync(); // Reload the collections to reflect the changes
+                    //        }
+                    //}
                     break;
             }
         }

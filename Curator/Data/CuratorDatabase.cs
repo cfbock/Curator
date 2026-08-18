@@ -86,4 +86,25 @@ public class CuratorDatabase
             .Where(c => c.ParentCollectionId == parentCollectionId)
             .CountAsync(); //return the count of collections with the specified parentCollectionId
     }
-}
+
+    public async Task<bool> CollectionExistsAsync(string name, int? parentCollectionId, int? excludeCollectionId = null)
+    {
+        await InitializeAsync();
+
+        // Start building the query to check for existing collections with the same name
+        var query = _database.Table<Collection>().Where(c => c.Name == name);
+
+        // Exclude the collection with the specified CollectionId if provided
+        if (excludeCollectionId.HasValue)
+        {
+            query = query.Where(c => c.Id != excludeCollectionId.Value);
+        }
+        else
+        {
+            query = query.Where(c => c.ParentCollectionId == null);
+        }
+
+        var count = await query.CountAsync();
+        return count > 0;
+    }
+} 
