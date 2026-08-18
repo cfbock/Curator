@@ -92,7 +92,7 @@ public class CuratorDatabase
         await InitializeAsync();
 
         // Start building the query to check for existing collections with the same name
-        var query = _database.Table<Collection>().Where(c => c.Name == name);
+        var query = _database.Table<Collection>().Where(c => c.Name == name && c.ParentCollectionId == parentCollectionId);
 
         // Exclude the collection with the specified CollectionId if provided
         if (excludeCollectionId.HasValue)
