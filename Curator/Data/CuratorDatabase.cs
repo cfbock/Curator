@@ -99,10 +99,6 @@ public class CuratorDatabase
         {
             query = query.Where(c => c.Id != excludeCollectionId.Value);
         }
-        else
-        {
-            query = query.Where(c => c.ParentCollectionId == null);
-        }
 
         var count = await query.CountAsync();
         return count > 0;
