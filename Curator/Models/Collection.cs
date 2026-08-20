@@ -12,8 +12,8 @@ public class Collection
     public string CollectionType { get; set; } = "";
 
     // Null indicates a root-level collection
-    public int? ParentCollectionId { get; set; } 
-    
+    public int? ParentCollectionId { get; set; }
+
     [Ignore]
     public int ItemCount { get; set; }
 }

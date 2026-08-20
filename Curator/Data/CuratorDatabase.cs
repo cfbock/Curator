@@ -79,8 +79,8 @@ public class CuratorDatabase
 
     // Check if collection exists
     public async Task<bool> CollectionExistsAsync(
-        string name, 
-        int? parentCollectionId, 
+        string name,
+        int? parentCollectionId,
         int? excludeCollectionId = null)
     {
         await InitializeAsync();
@@ -98,4 +98,4 @@ public class CuratorDatabase
         var count = await query.CountAsync();
         return count > 0;
     }
-} 
+}
