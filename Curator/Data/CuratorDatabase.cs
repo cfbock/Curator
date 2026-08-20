@@ -5,40 +5,37 @@ namespace Curator.Data;
 
 public class CuratorDatabase
 {
-    // Just a constant string. The database file will be named "curator.db3".
     private const string DatabaseFilename = "curator.db3";
 
-    // A private member variable that will hold our connection to SQLite.
+    // Shared SQLite connection for database operations.
     private readonly SQLiteAsyncConnection _database;
 
-    // Constructor
+    // Initialize database connection
     public CuratorDatabase()
     {
-        // Build the full path to the database file.
         string databasePath = Path.Combine(
             FileSystem.AppDataDirectory,
             DatabaseFilename);
 
-        // Create a connection object and store it in our member variable.
         _database = new SQLiteAsyncConnection(databasePath);
     }
 
-    // Make sure the Collections table exists.
+    // Make sure the collections table exists.
     public async Task InitializeAsync()
     {
         await _database.CreateTableAsync<Collection>();
     }
 
-    // Return every Collection in the database.
-    public async Task<List<Collection>> GetCollectionsAsync(int? collectionId = null)
+    // Get child or root collections
+    public async Task<List<Collection>> GetCollectionsAsync(int? parentCollectionId = null)
     {
         await InitializeAsync();
 
         var query = _database.Table<Collection>();
 
-        if (collectionId.HasValue)
+        if (parentCollectionId.HasValue)
         {
-            query = query.Where(c => c.ParentCollectionId == collectionId.Value);
+            query = query.Where(c => c.ParentCollectionId == parentCollectionId.Value);
         }
         else
         {
@@ -46,37 +43,30 @@ public class CuratorDatabase
         }
 
         return await query.ToListAsync();
-            //.ToListAsync();
-
-        //return await _database
-        //    .Table<Collection>()
-        //    .ToListAsync();
     }
 
-    // Save one Collection
+    // Save collection
     public async Task<int> SaveCollectionAsync(Collection collection)
     {
         await InitializeAsync();
 
         if (collection.Id != 0)
         {
-            // Existing row -> UPDATE
             return await _database.UpdateAsync(collection);
         }
 
-        // New row -> INSERT
         return await _database.InsertAsync(collection);
     }
 
-    // Remove one Collection
+    // Remove collection
     public async Task<int> DeleteCollectionAsync(Collection collection)
     {
         await InitializeAsync();
 
-        // Existing row -> DELETE
         return await _database.DeleteAsync(collection);
     }
 
+    // Count collections
     public async Task<int> GetCollectionCountAsync(int parentCollectionId)
     {
         await InitializeAsync();
@@ -84,17 +74,22 @@ public class CuratorDatabase
         return await _database
             .Table<Collection>()
             .Where(c => c.ParentCollectionId == parentCollectionId)
-            .CountAsync(); //return the count of collections with the specified parentCollectionId
+            .CountAsync();
     }
 
-    public async Task<bool> CollectionExistsAsync(string name, int? parentCollectionId, int? excludeCollectionId = null)
+    // Check if collection exists
+    public async Task<bool> CollectionExistsAsync(
+        string name, 
+        int? parentCollectionId, 
+        int? excludeCollectionId = null)
     {
         await InitializeAsync();
 
-        // Start building the query to check for existing collections with the same name
-        var query = _database.Table<Collection>().Where(c => c.Name == name && c.ParentCollectionId == parentCollectionId);
+        var query = _database
+            .Table<Collection>()
+            .Where(c => c.Name == name &&
+                        c.ParentCollectionId == parentCollectionId);
 
-        // Exclude the collection with the specified CollectionId if provided
         if (excludeCollectionId.HasValue)
         {
             query = query.Where(c => c.Id != excludeCollectionId.Value);
