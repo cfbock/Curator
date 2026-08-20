@@ -1,4 +1,23 @@
-.vs
+# Visual Studio
+.vs/
+*.csproj.user
+*.suo
+*.user
+
+# Build output
 bin/
 obj/
-*.csproj.user
+
+# Local databases
+*.db
+*.db3
+*.sqlite
+*.sqlite3
+
+# Android signing files
+*.keystore
+*.jks
+
+# OS files
+.DS_Store
+Thumbs.db
