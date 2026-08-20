@@ -2,7 +2,7 @@
 
 Curator is an Android collection-management app built with **C# and .NET MAUI**. It is designed to provide a simple, flexible way to organize and browse personal collections without requiring accounts, subscriptions, or unnecessary cloud services.
 
-> **Status:** Curator is currently under active development. Core functionality is working, but features and UI are still evolving.
+> **Status:** Curator v0.1 Alpha — under active development. Core functionality is working, but features and UI are still evolving.
 
 ## Features
 
