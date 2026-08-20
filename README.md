@@ -7,17 +7,20 @@ Curator is an Android collection-management app built with **C# and .NET MAUI**.
 ## Features
 
 - Create and manage multiple collections
-- Organize items within collections
-- Search collections and items
-- Randomly select an item from a collection
-- Export collection data to CSV
 - Local data storage
 - No account or login required
 - Designed with minimal permissions and user control of data in mind
 
 ## Screenshots
 
-*Screenshots coming soon.*
+### Collections
+<img src="docs/screenshots/collections.png" width="300" alt="Curator collections screen">
+
+### Creating Collections and Folders
+<img src="docs/screenshots/new-menu.png" width="300" alt="Curator new collection and folder menu">
+
+### Collection Management
+<img src="docs/screenshots/collection-options.png" width="300" alt="Curator collection management options">
 
 ## Why Curator?
 
@@ -33,6 +36,7 @@ It has also become a way for me to explore modern Android application developmen
 - **.NET MAUI**
 - **XAML**
 - **.NET**
+- **SQLite**
 - **Android**
 - **Git / GitHub**
 
@@ -68,7 +72,7 @@ Curator is currently developed using .NET MAUI and targets Android.
 ### Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/cfbock/Curator.git
 cd Curator
 ```
 

@@ -10,9 +10,10 @@
 
 ## Later Alpha
 
-- Search
-- Random item selection
-- CSV export
+- Organize items within collections
+- Search collections and items
+- Randomly select an item from a collection
+- Export collection data to CSV
 - Collection customization
   - Custom item fields
 
