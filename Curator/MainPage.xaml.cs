@@ -324,13 +324,24 @@ public partial class MainPage : ContentPage
     // Open the selected folder
     private async void OpenFolderCollectionClicked(object? sender, TappedEventArgs e)
     {
-        if (e.Parameter is Collection collectionToOpen &&
-            collectionToOpen.IsFolder)
+        if (e.Parameter is Collection collectionToOpen)
         {
-            _currentFolderId = collectionToOpen.Id;
-            _currentFolderName = collectionToOpen.Name;
-            HeaderLabel.Text = CurrentLocation;
-            await LoadCollectionsAsync();
+            if(collectionToOpen.IsFolder)
+            {
+                _currentFolderId = collectionToOpen.Id;
+                _currentFolderName = collectionToOpen.Name;
+                HeaderLabel.Text = CurrentLocation;
+                await LoadCollectionsAsync();
+            }
+            else
+            {
+                var navigationParameter = new Dictionary<string, object>
+                {
+                    { "Collection", collectionToOpen}
+                };
+
+                await Shell.Current.GoToAsync(nameof(CollectionPage), navigationParameter);
+            }
         }
     }
 
