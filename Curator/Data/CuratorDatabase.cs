@@ -24,6 +24,7 @@ public class CuratorDatabase
     public async Task InitializeAsync()
     {
         await _database.CreateTableAsync<Collection>();
+        await _database.CreateTableAsync<Item>();
     }
 
     // Get child or root collections
@@ -97,5 +98,36 @@ public class CuratorDatabase
 
         var count = await query.CountAsync();
         return count > 0;
+    }
+
+    // Get items for a specific collection
+    public async Task<List<Item>> GetItemsAsync(int collectionId)
+    {
+        await InitializeAsync();
+
+        return await _database
+            .Table<Item>()
+            .Where(i => i.CollectionId == collectionId)
+            .ToListAsync();
+    }
+
+    // Save item
+    public async Task<int> SaveItemAsync(Item item)
+    {
+        await InitializeAsync();
+
+        if (item.Id != 0)
+        {
+            return await _database.UpdateAsync(item);
+        }
+        return await _database.InsertAsync(item);
+    }
+
+    // Remove item
+    public async Task<int> DeleteItemAsync(Item item)
+    {
+        await InitializeAsync();
+
+        return await _database.DeleteAsync(item);
     }
 }
