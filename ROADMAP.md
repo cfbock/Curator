@@ -4,9 +4,18 @@
 
 - Collections and folders
 - Add/edit/delete/move collections
-- Add items to collections
 - Persistent SQLite storage
 - Basic navigation
+
+## 0.12 Alpha
+
+- Add items to collections
+- Persistent item storage
+- Item counts for collections
+- Item detail (Exhibit) pages
+- Item deletion
+- Collection and item navigation
+- Contextual collection and item page titles
 
 ## Later Alpha
 
