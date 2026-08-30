@@ -78,6 +78,17 @@ public class CuratorDatabase
             .CountAsync();
     }
 
+    // Count items in a collection
+    public async Task<int> GetItemCountAsync(int collectionId)
+    {
+        await InitializeAsync();
+
+        return await _database
+            .Table<Item>()
+            .Where(i => i.CollectionId == collectionId)
+            .CountAsync();
+    }
+
     // Check if collection exists
     public async Task<bool> CollectionExistsAsync(
         string name,

@@ -55,6 +55,10 @@ public partial class MainPage : ContentPage
             {
                 collection.ItemCount = await _curatorDatabase.GetCollectionCountAsync(collection.Id);
             }
+            else
+            {
+                collection.ItemCount = await _curatorDatabase.GetItemCountAsync(collection.Id);
+            }
 
             Library.Add(collection);
         }
