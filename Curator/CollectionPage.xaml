@@ -6,15 +6,34 @@
     x:Class="Curator.CollectionPage"
     Title="Curator">
 
-    <VerticalStackLayout>
+    <Grid RowDefinitions="*,Auto">
         <CollectionView ItemsSource="{Binding Items}">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Label Text="{Binding Name}" />
+                    <Border>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Tapped="OpenItemClicked"
+                                CommandParameter="{Binding}" />         
+                        </Border.GestureRecognizers>
+                        <Label Text="{Binding Name}" />
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-    </VerticalStackLayout>
+
+        <!-- Add button -->
+        <Button
+            Grid.Row="1"
+            Text="+"
+            FontSize="28"
+            WidthRequest="64"
+            HeightRequest="64"
+            HorizontalOptions="End" 
+            Clicked="OnAddItemClicked" />   
+    </Grid>
+
+    
 
 </ContentPage>
 

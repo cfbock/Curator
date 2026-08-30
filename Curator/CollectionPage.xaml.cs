@@ -8,28 +8,59 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Curator;
 
-public partial class CollectionPage : ContentPage
+public partial class CollectionPage : ContentPage, IQueryAttributable
 {
-	private readonly Collection _collection;
+	private Collection? _collection;
 
-	private readonly CuratorDatabase _curatorDatabase = new();
+    private readonly CuratorDatabase _curatorDatabase;
 
     public ObservableCollection<Item> Items { get; set; } = new();
 
-	public CollectionPage(Collection collection)
+	public CollectionPage()
 	{
+        _curatorDatabase = new CuratorDatabase();
         InitializeComponent();
 		BindingContext = this;
-		_collection = collection;
+    }
 
-        //Items.Add(new Item { Name = "Sample Item 1" });
+    // Implement IQueryAttributable to receive query parameters
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        if (query["Collection"] is Collection collection)
+        {
+            _collection = collection;
+            Title = _collection.Name;
+        }
+    }
+
+    // Handle the Add Item button click event
+    private async void OnAddItemClicked(object sender, EventArgs e)
+    {
+        if (_collection is null)
+            return;
+
+        string? name = await DisplayPromptAsync(
+            "Add Item",
+            "Item name:");
+
+        if (string.IsNullOrWhiteSpace(name))
+            return;
+
+        Item item = new Item
+        {
+            Name = name.Trim(),
+            CollectionId = _collection.Id
+        };
+
+        await _curatorDatabase.SaveItemAsync(item);
+
+        await LoadItemsAsync();
     }
 
     // Load items when page appears
     protected override async void OnAppearing()
     {
-        //_curatorDatabase = new CuratorDatabase();
-        Items = new ObservableCollection<Item>();
+        //Items = new ObservableCollection<Item>();
 
         base.OnAppearing();
         await LoadItemsAsync();
@@ -38,6 +69,9 @@ public partial class CollectionPage : ContentPage
     // Load items for the current collection
     private async Task LoadItemsAsync()
     {
+        if (_collection is null)
+            return;
+
         List<Item> savedItems =
             await _curatorDatabase.GetItemsAsync(_collection.Id);
 
@@ -48,4 +82,19 @@ public partial class CollectionPage : ContentPage
             Items.Add(item);
         }
     }
+
+    // Open the selected Item
+    private async void OpenItemClicked(object? sender, TappedEventArgs e)
+    {
+        if (e.Parameter is Item itemToOpen)
+        {
+            var navigationParameter = new Dictionary<string, object>
+                {
+                    { "Item", itemToOpen}
+                };
+
+            await Shell.Current.GoToAsync(nameof(ExhibitPage), navigationParameter);
+        }
+    }
 }
+                
