@@ -29,7 +29,8 @@ Curator is an Android collection-management app built with **C# and .NET MAUI**.
 <img src="docs/screenshots/ExhibitPage.png" width="300" alt="Curator collection management options">
 
 ### Item Delete
-<img src="docs/screenshots/ConfirmDelete.png" width="300" alt="Curator collection management options">
+<img src="docs/screenshots/ConfirmDel.png" width="300" alt="Curator collection management options">
+
 
 ### Add Item
 <img src="docs/screenshots/AddItem.png" width="300" alt="Curator collection management options">
