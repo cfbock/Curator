@@ -105,4 +105,4 @@ Expect changes to the UI, architecture, and features as development continues.
 
 Copyright © 2026 Christopher Bock.
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+No license has currently been granted for redistribution or reuse of the source code.
