@@ -21,3 +21,9 @@ obj/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Vim temporary files
+*.swp
+*.swo
+*.swn
+*~
